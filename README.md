@@ -30,21 +30,21 @@ An AI-powered system that conducts structured interviews and scores responses us
 
 
 interview-system/
-├── backend/              # FastAPI backend
+├── backend/              
 │   ├── app/
 │   │   ├── main.py
 │   │   ├── models/
 │   │   ├── routes/
 │   │   └── scoring/
 │   └── requirements.txt
-├── frontend/             # React + Tailwind frontend
+├── frontend/           
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── pages/
 │   │   └── App.jsx
 │   └── package.json
-├── docs/                 # Documents
+├── docs/                 
 │   └── AI_Interview_Scoring_System_BRD.pdf
 └── README.md
 
