@@ -19,5 +19,8 @@ from django.contrib.auth.decorators import login_required
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/', include("candidate.urls")),
+    path('api/', include("dashboard.urls")),
     path('api/', include("interview.urls")),
+    path('api/', include("scoring.urls")),
 ]

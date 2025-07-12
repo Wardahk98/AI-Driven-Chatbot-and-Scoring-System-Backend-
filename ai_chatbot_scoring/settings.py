@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from environs import Env
+
+env = Env()
+env.read_env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,7 +46,10 @@ INSTALLED_APPS = [
 ]
 
 CREATED_APPS = [
+    'candidate',
+    'dashboard',
     'interview',
+    'scoring'
 ]
 
 INSTALLED_APPS += CREATED_APPS
@@ -148,3 +155,16 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# -------------------for debugging--------------------------------
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'wardahk96py@gmail.com'
+EMAIL_HOST_PASSWORD = 'decr mknx hwhh kqol'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+OPENAI= env("OPEN_AI")

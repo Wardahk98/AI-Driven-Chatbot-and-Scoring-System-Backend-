@@ -1,25 +1,7 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-
-class Candidate(models.Model):
-    STATUS_CHOICES = [
-        ('not_started', 'Not Started'),
-        ('in_progress', 'In Progress'),
-        ('completed', 'Completed'),
-    ]
-    INTERVIEW_TYPE_CHOICES = [
-        ('hr', 'HR Interview'),
-        ('academic', 'Academic Interview'),
-    ]
-    candidate_id = models.CharField(max_length=100, unique=True)
-    name = models.CharField(max_length=100, blank=True)
-    email = models.EmailField(max_length=254, unique=True, null=True, blank=True)
-    cnic = models.CharField(max_length=254, unique=True)
-    interview_type = models.CharField(max_length=20, choices=INTERVIEW_TYPE_CHOICES, default='hr')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='not_started')
-
-    def __str__(self):
-        return self.candidate_id
+import uuid
+from candidate.models import Candidate
 
 
 class Question(models.Model):
@@ -41,6 +23,11 @@ class Question(models.Model):
     type = models.CharField(max_length=20, choices=INTERVIEW_TYPES)
     is_open_ended = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+    follow_up_prompt = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text="E.g., 'That's insightful! Want to elaborate?'"
+    )
 
     options = ArrayField(
         models.CharField(max_length=200),
@@ -63,11 +50,3 @@ class Response(models.Model):
     def __str__(self):
         return f"{self.candidate} - {self.question}"
 
-class CandidateScore(models.Model):
-    candidate = models.OneToOneField(Candidate, on_delete=models.CASCADE, related_name="score")
-    competency_scores = models.JSONField(default=dict)  # e.g., {"Motivation & Intent": 4}
-    total_score = models.FloatField(default=0.0)
-    scored_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.candidate.name} - Total Score: {self.total_score}"

@@ -7,11 +7,9 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['id', 'competencies', 'text', 'is_open_ended']
 
-
 class ResponseItemSerializer(serializers.Serializer):
     question_id = serializers.CharField()
     answer = serializers.CharField()
-
 
 class CandidateResponseSerializer(serializers.Serializer):
     candidate_id = serializers.CharField()
@@ -19,3 +17,7 @@ class CandidateResponseSerializer(serializers.Serializer):
     interview_type = serializers.ChoiceField(choices=['hr', 'academic'])
     responses = ResponseItemSerializer(many=True)
 
+class CandidateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Candidate
+        fields = ['candidate_id', 'name', 'email', 'cnic', 'interview_type', 'status']
