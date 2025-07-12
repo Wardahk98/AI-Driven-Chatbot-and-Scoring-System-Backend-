@@ -1,0 +1,65 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+*.env
+*.env.*
+
+# VSCode and PyCharm
+.vscode/
+.idea/
+
+# Django
+db.sqlite3
+*.log
+*.pot
+*.pyc
+*.mo
+
+# Migrations
+**/migrations/
+!**/migrations/__init__.py
+
+# Media/static
+/media/
+staticfiles/
+static/
+static_root/
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Testing
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+.pytest_cache/
+
+# Git
+*.orig
+
+# Build
+build/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# MyPy and Pyright
+.mypy_cache/
+.pyright/
+
+# VS Code debug history
+.history/
