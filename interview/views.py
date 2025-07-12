@@ -13,9 +13,8 @@ from collections import defaultdict
 from django.db import IntegrityError
 import random
 import openai
-from django.conf import settings
 import requests
-
+from django.conf import settings
 
 DEFAULT_FOLLOW_UPS = [
     "That's a thoughtful answer.",
@@ -30,6 +29,8 @@ DEFAULT_FOLLOW_UPS = [
 
 
 
+
+
 def get_llm_follow_up(interview_type ,question_text, candidate_answer):
     prompt = (
         f"You are an interview assistant. The candidate is giving interview for {interview_type}. "
@@ -41,6 +42,7 @@ def get_llm_follow_up(interview_type ,question_text, candidate_answer):
         f"not asking for clarifications just a polite acknowledgement of the answer the candiadate provided "
         f" 5-6 words only."
     )
+
 
     headers = {
         "Authorization": f"Bearer {settings.OPENAI}",  # Replace with your OpenRouter key

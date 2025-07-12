@@ -167,4 +167,4 @@ EMAIL_HOST_USER = 'wardahk96py@gmail.com'
 EMAIL_HOST_PASSWORD = 'decr mknx hwhh kqol'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-OPENAI= env("OPEN_AI")
+OPENAI= env("OPENAI_2")
