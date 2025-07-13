@@ -70,6 +70,9 @@ class Candidate(models.Model):
     is_invited = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    current_question_index = models.IntegerField(default=0)
+    interview_started_at = models.DateTimeField(null=True, blank=True)
+    interview_ended_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.first_name} {self.last_name} - {self.applied_to}"
@@ -88,13 +91,7 @@ class Candidate(models.Model):
             return f"{self.job_position.title} (Position)"
         return "N/A"
 
-    @property
-    def applied_to_display(self):
-        if self.academic_program:
-            return f"{self.academic_program.name} (Program)"
-        elif self.job_position:
-            return f"{self.job_position.title} (Position)"
-        return "N/A"
+
 
 
 

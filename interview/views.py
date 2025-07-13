@@ -1,3 +1,4 @@
+from datetime import timezone
 from uuid import uuid4
 from rest_framework.views import APIView
 from rest_framework.response import Response as DRFResponse, Response
@@ -15,6 +16,9 @@ import random
 import openai
 import requests
 from django.conf import settings
+from django.core.cache import cache
+import hashlib
+
 
 DEFAULT_FOLLOW_UPS = [
     "That's a thoughtful answer.",
@@ -27,25 +31,30 @@ DEFAULT_FOLLOW_UPS = [
     "Excellent! Let’s move to the next one.",
 ]
 
+def get_llm_follow_up(interview_type, question_text, candidate_answer):
+    # Hash the answer text for consistent key
+    answer_hash = hashlib.md5(candidate_answer.encode('utf-8')).hexdigest()
+    cache_key = f"llm_followup_q{question_text[:50]}_{answer_hash}"
 
+    # Check cache first
+    cached_response = cache.get(cache_key)
+    if cached_response:
+        return cached_response
 
-
-
-def get_llm_follow_up(interview_type ,question_text, candidate_answer):
+    # If not cached, generate prompt
     prompt = (
-        f"You are an interview assistant. The candidate is giving interview for {interview_type}. "
+        f"You are a polite and professional AI interview assistant conducting a {interview_type} interview.\n"
         f"The candidate was asked:\n"
-        f"'{question_text}'\n"
-        f"They answered:\n"
-        f"'{candidate_answer}'\n"
-        f"Reply with a short, polite, human-like follow-up message, "
-        f"not asking for clarifications just a polite acknowledgement of the answer the candiadate provided "
-        f" 5-6 words only."
+        f"\"{question_text}\"\n"
+        f"The candidate answered:\n"
+        f"\"{candidate_answer}\"\n"
+        f"Respond with a short, friendly acknowledgment of the candidate’s answer. "
+        f"Keep the response natural, polite, and human-like, between 5 to 7 words. "
+        f"Do not ask any questions or follow-up."
     )
 
-
     headers = {
-        "Authorization": f"Bearer {settings.OPENAI}",  # Replace with your OpenRouter key
+        "Authorization": f"Bearer {settings.OPENAI}",
         "Content-Type": "application/json"
     }
 
@@ -59,10 +68,15 @@ def get_llm_follow_up(interview_type ,question_text, candidate_answer):
     try:
         response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
         response.raise_for_status()
-        return response.json()['choices'][0]['message']['content'].strip()
+        content = response.json()['choices'][0]['message']['content'].strip()
+
+        # Store in cache for 1 day (86400 seconds)
+        cache.set(cache_key, content, timeout=86400)
+        return content
+
     except Exception as e:
         print("LLM Error:", e)
-        return "Thank you for your answer!"
+        return random.choice(DEFAULT_FOLLOW_UPS)
 
 
 
@@ -70,21 +84,31 @@ class InterviewView(APIView):
     def get(self, request):
         candidate_id = request.GET.get('candidate_id')
         interview_type = request.GET.get('type')
-        question_index = int(request.GET.get('index', 0))
 
         if not candidate_id or not interview_type:
             return DRFResponse({"error": "Missing 'candidate_id' or 'type'"}, status=400)
 
-        # Get questions for this interview type
+        candidate = get_object_or_404(Candidate, candidate_id=candidate_id)
+
+        # Optional: Start interview time
+        if not candidate.interview_started_at:
+            candidate.interview_started_at = timezone.now()
+            candidate.save()
+
         questions = Question.objects.filter(type=interview_type, is_active=True).order_by('id')
 
-        if question_index >= len(questions):
+        if candidate.current_question_index >= len(questions):
+            # End timestamp if interview is completed
+            if not candidate.interview_ended_at:
+                candidate.interview_ended_at = timezone.now()
+                candidate.status = 'completed'
+                candidate.save()
             return DRFResponse({"done": True, "message": "Interview complete!"})
 
-        q = questions[question_index]
+        q = questions[candidate.current_question_index]
 
         return DRFResponse({
-            "index": question_index,
+            "index": candidate.current_question_index,
             "question_id": q.id,
             "text": q.text,
             "is_open_ended": q.is_open_ended,
@@ -103,6 +127,10 @@ class InterviewView(APIView):
 
             for item in data['responses']:
                 question = get_object_or_404(Question, id=item['question_id'])
+                if Answer.objects.filter(candidate=candidate, question=question).exists():
+                    return DRFResponse({
+                        "error": f"Answer already submitted for question ID {question.id}."
+                    }, status=400)
                 Answer.objects.update_or_create(
                     candidate=candidate,
                     question=question,
@@ -110,7 +138,9 @@ class InterviewView(APIView):
                 )
                 print(data['interview_type'])
 
-                feedback = get_llm_follow_up(data['interview_type'],question.text, item['answer'])
+            feedback = get_llm_follow_up(data['interview_type'],question.text, item['answer'])
+            candidate.current_question_index += 1
+            candidate.save()
 
             return DRFResponse({
                 "status": "success",

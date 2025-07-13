@@ -21,3 +21,5 @@ class CandidateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Candidate
         fields = ['candidate_id', 'name', 'email', 'cnic', 'interview_type', 'status']
+
+
